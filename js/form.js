@@ -1,3 +1,13 @@
+// 🔹 Add your Supabase credentials
+const SUPABASE_URL = "https://evjomzdvlsdstgkiezuw.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV2am9temR2bHNkc3Rna2llenV3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzExNjUyMDksImV4cCI6MjA4Njc0MTIwOX0.r1ciKUfRgyuJavwmBgue2fB_QEZ5UpUnAtgnt07IzeQ";
+
+const { createClient } = window.supabase;
+
+const supabaseClient = createClient(
+  SUPABASE_URL,
+  SUPABASE_ANON_KEY
+);
 // Form handling for sell.html
 document.addEventListener('DOMContentLoaded', function() {
     const acForm = document.getElementById('acForm');
@@ -7,11 +17,6 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Check for URL parameters (success/error)
     checkUrlParams();
-    
-    // Request notification permission on page load
-    if ("Notification" in window && Notification.permission === "default") {
-        Notification.requestPermission();
-    }
 });
 
 async function handleSubmit(event) {
@@ -45,25 +50,49 @@ async function handleSubmit(event) {
     
     // Collect form data
     const formData = new FormData(event.target);
-    const data = {};
+    const data = {
+    full_name: formData.get("fullName"),
+    mobile: formData.get("mobile"),
+    address: formData.get("address"),
+    area: formData.get("area"),
+    brand: formData.get("brand"),
+    ac_type: formData.get("acType"),
+    capacity: formData.get("capacity"),
+    age: formData.get("age"),
+    ac_condition: formData.get("condition"),
+    notes: formData.get("notes") || null,
+    status: "pending"
+    };
     formData.forEach((value, key) => {
-        data[key] = value;
+        // Convert form field names to database column names
+        if (key === 'fullName') data.full_name = value;
+        else if (key === 'acType') data.ac_type = value;
+        else if (key === 'condition') data.ac_condition = value;
+        else data[key] = value;
     });
     
     // Add metadata
-    data.submittedAt = new Date().toISOString();
-    data.id = Date.now();
     data.status = 'pending';
     
     try {
-        // Save to localStorage
-        const savedData = saveToLocalStorage(data);
+        // Save directly to Supabase
+        const { error } = await supabaseClient
+            .from('ac_listings')
+            .insert([data]);
+
+        if (error) {
+            console.error('supabaseClient error:', error);
+            throw error;
+        }
+
+        console.log('✅ Data saved to supabaseClient');
         
-        // Send admin notifications
-        sendAdminNotifications(savedData);
-        
-        // Show success message
+        // Show success message with the confirmation text
         if (successMessage) {
+            successMessage.innerHTML = `
+                <strong>Thank you!</strong><br>
+                Our team will contact you shortly to discuss the best possible price.
+            `;
             successMessage.style.display = 'block';
             event.target.reset();
             successMessage.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -73,8 +102,6 @@ async function handleSubmit(event) {
                 successMessage.style.display = 'none';
             }, 5000);
         }
-        
-        console.log('✅ Form submitted successfully:', savedData);
         
     } catch (error) {
         console.error('Error submitting form:', error);
@@ -95,90 +122,6 @@ async function handleSubmit(event) {
     return false;
 }
 
-// Save to localStorage
-function saveToLocalStorage(data) {
-    const submissions = JSON.parse(localStorage.getItem('acSubmissions') || '[]');
-    submissions.push(data);
-    localStorage.setItem('acSubmissions', JSON.stringify(submissions));
-    return data;
-}
-
-// Send admin notifications
-function sendAdminNotifications(listing) {
-    console.log('🔔 New listing received:', listing);
-    
-    // 1. Store in admin notifications
-    const notifications = JSON.parse(localStorage.getItem('adminNotifications') || '[]');
-    notifications.push({
-        id: listing.id,
-        title: 'New AC Listing',
-        message: `${listing.fullName} from ${listing.area} listed a ${listing.brand} ${listing.acType}`,
-        time: new Date().toISOString(),
-        read: false,
-        data: listing
-    });
-    localStorage.setItem('adminNotifications', JSON.stringify(notifications));
-    
-    // 2. Show browser notification
-    showBrowserNotification(listing);
-    
-    // 3. Play notification sound (optional)
-    playNotificationSound();
-}
-
-// Show browser notification
-function showBrowserNotification(listing) {
-    // Check if browser supports notifications
-    if (!("Notification" in window)) {
-        console.log('Browser notifications not supported');
-        return;
-    }
-    
-    // Check permission
-    if (Notification.permission === "granted") {
-        // Create notification
-        const notification = new Notification("🆕 New AC Listing - Bhaarat AC Buyers", {
-            body: `${listing.fullName} from ${listing.area} wants to sell ${listing.brand} ${listing.acType} (${listing.capacity} Ton)`,
-            icon: window.location.origin + '/assets/images/logo.png',
-            badge: window.location.origin + '/assets/images/logo.png',
-            tag: `listing-${listing.id}`,
-            requireInteraction: true,
-            silent: false,
-            vibrate: [200, 100, 200]
-        });
-        
-        // Handle notification click
-        notification.onclick = function() {
-            window.focus();
-            // You can open admin panel here
-            const wantToView = confirm('View this listing in admin panel?');
-            if (wantToView) {
-                // Store current listing ID for admin panel
-                localStorage.setItem('currentListing', JSON.stringify(listing));
-                window.open('admin.html', '_blank');
-            }
-            notification.close();
-        };
-        
-        // Auto close after 10 seconds
-        setTimeout(() => notification.close(), 10000);
-        
-    } else if (Notification.permission !== "denied") {
-        Notification.requestPermission();
-    }
-}
-
-// Play notification sound (optional)
-function playNotificationSound() {
-    try {
-        const audio = new Audio('https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3');
-        audio.volume = 0.5;
-        audio.play().catch(e => console.log('Audio play failed:', e));
-    } catch (error) {
-        console.log('Sound not supported');
-    }
-}
-
 // Check if address is in Mumbai
 function isMumbaiAddress(address, area) {
     if (!address) return false;
@@ -188,7 +131,7 @@ function isMumbaiAddress(address, area) {
         'dadar', 'powai', 'vashi', 'worli', 'goregaon', 'malad', 'juhu',
         'chembur', 'ghatkopar', 'mulund', 'kandivali', 'santacruz', 'khar',
         'marine lines', 'churchgate', 'colaba', 'lower parel', 'prabhadevi',
-        'dadar', 'matunga', 'sion', 'wadala', 'kings circle', 'byculla'
+        'matunga', 'sion', 'wadala', 'kings circle', 'byculla'
     ];
     
     const addressLower = address.toLowerCase();
@@ -208,6 +151,10 @@ function checkUrlParams() {
     if (success === '1') {
         const successMessage = document.getElementById('successMessage');
         if (successMessage) {
+            successMessage.innerHTML = `
+                <strong>Thank you!</strong><br>
+                Our team will contact you shortly to discuss the best possible price.
+            `;
             successMessage.style.display = 'block';
             setTimeout(() => {
                 successMessage.style.display = 'none';
@@ -216,39 +163,23 @@ function checkUrlParams() {
     }
 }
 
-// Debug functions - type in browser console:
-// debugForm.getAll() - to see all submissions
-// debugForm.clearAll() - to clear all data
+// Simple debug function
 window.debugForm = {
-    getAll: function() {
-        return {
-            submissions: JSON.parse(localStorage.getItem('acSubmissions') || '[]'),
-            notifications: JSON.parse(localStorage.getItem('adminNotifications') || '[]')
-        };
-    },
-    getLatest: function() {
-        const submissions = JSON.parse(localStorage.getItem('acSubmissions') || '[]');
-        return submissions[submissions.length - 1] || null;
-    },
-    clearAll: function() {
-        if (confirm('Delete all form data?')) {
-            localStorage.removeItem('acSubmissions');
-            localStorage.removeItem('adminNotifications');
-            console.log('✅ All data cleared');
+    testConnection: async function() {
+        try {
+            const { data, error } = await supabaseClient
+                .from('ac_listings')
+                .select('count', { count: 'exact', head: true });
+            
+            if (error) {
+                console.log('❌ supabaseClient connection failed:', error);
+            } else {
+                console.log('✅ supabaseClient connected successfully!');
+            }
+        } catch (e) {
+            console.log('❌ supabaseClient error:', e);
         }
-    },
-    testNotification: function() {
-        const testData = {
-            id: Date.now(),
-            fullName: 'Test User',
-            area: 'Andheri',
-            brand: 'LG',
-            acType: 'Split',
-            capacity: '1.5'
-        };
-        showBrowserNotification(testData);
     }
 };
 
-// Log that forms.js is loaded
-console.log('✅ forms.js loaded successfully');
+console.log('✅ forms.js loaded - supabaseClient only');
