@@ -37,7 +37,7 @@ function loadFooter() {
                     <a href="about.html">About Us</a>
                     <a href="contact.html">Contact</a>
                 </div>
-                <p style="margin-top: 1rem; opacity: 0.8;">&copy; 2024 Bhaarat AC Buyers. All rights reserved.</p>
+                <p style="margin-top: 1rem; opacity: 0.8;">&copy; 2026 Bhaarat AC Buyers. All rights reserved.</p>
                 <p style="margin-top: 0.5rem; font-size: 0.9rem; opacity: 0.7;">Professional AC buying service in Mumbai | Best prices guaranteed</p>
             </div>
         </footer>
