@@ -37,6 +37,63 @@ function loadFooter() {
                     <a href="about.html">About Us</a>
                     <a href="contact.html">Contact</a>
                 </div>
+                <!-- Business Details Card -->
+            <div style="
+                max-width:900px;
+                margin:40px auto;
+                background:#f4f4f4;
+                padding:25px;
+                border-radius:14px;
+                box-shadow:0 10px 25px rgba(0,0,0,0.15);
+                font-family:Arial, sans-serif;
+                color:#333;
+            ">
+
+                <h3 style="
+                    font-size:20px;
+                    font-weight:600;
+                    margin-bottom:10px;
+                    border-bottom:3px solid #1e73be;
+                    padding-bottom:6px;
+                ">
+                    Registered Address
+                </h3>
+
+                <p style="line-height:1.7; font-size:15px; margin-bottom:25px;">
+                    Shop No 36, DN NAGAR MUNCIPAL,<br>
+                    SCHOOL RD OPPOSITE BHARAT SKYVIDTAS BUILDING,<br>
+                    SONAL CO OPERATIVE HSG SOCIETY,<br>
+                    INDIRA NAGAR, DN NAGAR ANDHERI WEST, Mumbai,<br>
+                    Mumbai City, Maharashtra – 400053
+                </p>
+
+                <h3 style="
+                    font-size:20px;
+                    font-weight:600;
+                    margin-bottom:10px;
+                    border-bottom:3px solid #1e73be;
+                    padding-bottom:6px;
+                ">
+                    Business Registration
+                </h3>
+
+                <p style="margin:8px 0; font-size:15px;">
+                    <strong>Udyam Registration Number:</strong> UDYAM-MH-18-0505135
+                </p>
+                 
+                <p style="margin:8px 0; font-size:15px;">
+                    <strong>Business Name:</strong> Bhaarat AC Buyers
+                </p>
+
+                <p style="margin:8px 0; font-size:15px;">
+                    <strong>Service:</strong> Old and Scrap AC Buyer and Seller
+                </p>
+ 
+                <p style="margin:8px 0; font-size:15px;">
+                    <strong>Ownership:</strong> MR. Mohammad Jameel Akhtar Khan
+                </p>
+
+            </div>
                 <p style="margin-top: 1rem; opacity: 0.8;">&copy; 2026 Bhaarat AC Buyers. All rights reserved.</p>
                 <p style="margin-top: 0.5rem; font-size: 0.9rem; opacity: 0.7;">Professional AC buying service in Mumbai | Best prices guaranteed</p>
             </div>
